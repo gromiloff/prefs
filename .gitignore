@@ -1,12 +1,7 @@
+.idea/
+build/
+local.properties
 *.iml
-.gradle
-/local.properties
-/.idea
+*.log
+.gradle/
 .DS_Store
-/build
-/skip
-/captures
-.externalNativeBuild
-.cxx
-*.bat
-gradlew
