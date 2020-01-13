@@ -1,4 +1,4 @@
-apply plugin: 'com.android.library'
+apply plugin: 'android-library'
 apply plugin: 'kotlin-android'
 
 group='com.github.gromiloff'
@@ -29,5 +29,5 @@ android {
 }
 
 dependencies {
-    api deps.kotlin.stdlib
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${kotlin_version}"
 }
