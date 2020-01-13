@@ -1,0 +1,33 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+group='com.github.gromiloff'
+
+android {
+    compileSdkVersion 29
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 29
+        
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    buildTypes {
+        debug {
+            useProguard false
+            minifyEnabled false
+            proguardFiles ( getDefaultProguardFile('proguard-android.txt') )
+        }
+        release {
+            useProguard true
+            minifyEnabled true
+            proguardFiles ( getDefaultProguardFile('proguard-android.txt') )
+        }
+    }
+}
+
+dependencies {
+    api deps.kotlin.stdlib
+}

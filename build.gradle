@@ -1,0 +1,14 @@
+buildscript {
+    apply from: 'version_refs.gradle'
+    addRepos(repositories)
+
+    
+    dependencies {
+        classpath deps.plugin.gradle
+        classpath deps.plugin.kotlin
+    }
+}
+
+allprojects {
+    addRepos(repositories)
+}
