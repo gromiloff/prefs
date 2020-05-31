@@ -62,7 +62,7 @@ class AppPref {
             Log.d(key::class.java.simpleName, "reset $key")
         }
 
-        fun <Type> returnIfExist(key: PrefEnum<Any>): Type? {
+        fun returnIfExist(key: PrefEnum<Any>): Any? {
             var fromCache = false
             val cacheValue = this.cache[key]
             var result = if (cacheValue == null) {
@@ -111,12 +111,11 @@ class AppPref {
             if(result == key.defaultValue) result = null
 
             Log.d(key.name, "get from " + (if (fromCache) " CACHE " else " PREFS ") + " [$result]")
-            @Suppress("UNCHECKED_CAST")
-            return result as? Type
+            return result
         }
 
         fun <Type> load(key: PrefEnum<Any>) : Type {
-            val result = returnIfExist<Type>(key)
+            val result = returnIfExist(key) as? Type
             return result ?: key.defaultValue as Type
         }
 
@@ -154,10 +153,10 @@ class AppPref {
             }
         }
 
-        fun addListenerValue(key: PrefEnum<*>, listener: Observer, customObserverName: Observable? = null) {
+        fun addListenerValue(key: PrefEnum<Any>, listener: Observer, customObserverName: Observable? = null) {
             var o = this.cache[key]
             if (o == null) {
-                o = ObserverValue(this.pref!!.getString(key.name, "" + key.defaultValue))
+                o = ObserverValue(returnIfExist(key))
                 this.cache[key] = o
             }
             o.customObserverName = customObserverName
