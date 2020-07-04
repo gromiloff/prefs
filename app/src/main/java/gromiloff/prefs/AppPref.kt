@@ -54,7 +54,7 @@ class AppPref {
         private val cache = HashMap<PrefEnum<*>, ObserverValue<*>>()
 
         fun init(context: Context, name: String) {
-            this.pref = context.applicationContext.getSharedPreferences(name, Context.MODE_PRIVATE)
+            this.pref = context.getSharedPreferences(name, Context.MODE_PRIVATE)
         }
 
         fun reset(key: PrefEnum<Any>) {
