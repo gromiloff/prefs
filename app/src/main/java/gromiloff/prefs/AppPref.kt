@@ -23,26 +23,25 @@ data class AppPref(private var prefs : SharedPreferences? = null) {
     internal fun getLong(key: String, def : Long = 0L) = this.pref?.getLong(key, def)
     internal fun getString(key: String, def : String? = null) = this.pref?.getString(key, def)
 
-    internal fun getBoolean(@StringRes key: Int, def : Boolean = false) = getBoolean(key.toString(), def)
-    internal fun getFloat(@StringRes key: Int, def : Float = 0f) = getFloat(key.toString(), def)
-    internal fun getInt(@StringRes key: Int, def : Int = 0) = getInt(key.toString(), def)
-    internal fun getLong(@StringRes key: Int, def : Long = 0L) = getLong(key.toString(), def)
-    internal fun getString(@StringRes key: Int, def : String? = null) = getString(key.toString(), def)
-
-    internal fun setBoolean(@StringRes key: Int, def : Boolean = false) {
-        this.pref?.edit()?.putBoolean(key.toString(), def)?.store()
+    internal fun setBoolean(key: String, value : Boolean) {
+        this.pref?.edit()?.putBoolean(key, value)?.store()
+        this.prefObserver?.notifyObservers(key, value)
     }
-    internal fun setFloat(@StringRes key: Int, def : Float = 0f) {
-        this.pref?.edit()?.putFloat(key.toString(), def)?.store()
+    internal fun setFloat(key: String, value : Float) {
+        this.pref?.edit()?.putFloat(key, value)?.store()
+        this.prefObserver?.notifyObservers(key, value)
     }
-    internal fun setInt(@StringRes key: Int, def : Int = 0) {
-        this.pref?.edit()?.putInt(key.toString(), def)?.store()
+    internal fun setInt(key: String, value : Int) {
+        this.pref?.edit()?.putInt(key, value)?.store()
+        this.prefObserver?.notifyObservers(key, value)
     }
-    internal fun setLong(@StringRes key: Int, def : Long = 0L) {
-        this.pref?.edit()?.putLong(key.toString(), def)?.store()
+    internal fun setLong(key: String, value : Long) {
+        this.pref?.edit()?.putLong(key, value)?.store()
+        this.prefObserver?.notifyObservers(key, value)
     }
-    internal fun setString(@StringRes key: Int, def : String? = null) {
-        this.pref?.edit()?.putString(key.toString(), def)?.store()
+    internal fun setString(key: String, value : String?) {
+        this.pref?.edit()?.putString(key, value)?.store()
+        this.prefObserver?.notifyObservers(key, value)
     }
 
     internal fun addObserver(observer : PrefObserver, @StringRes keyRes: Int? = null, keyStr: String? = null){
@@ -50,11 +49,10 @@ data class AppPref(private var prefs : SharedPreferences? = null) {
         this.prefObserver?.addObserver(keyStr ?: keyRes.toString(), observer)
     }
     internal fun removeObserver(observer : PrefObserver, @StringRes keyRes: Int? = null, keyStr: String? = null){
-        this.prefObserver?.deleteObserver(keyStr ?: keyRes.toString(), observer)
-        if(observerCount() == 0) this.prefObserver = null
+        if(this.prefObserver?.deleteObserver(keyStr ?: keyRes.toString(), observer) == 0) this.prefObserver = null
     }
 
-    internal fun observerCount(@StringRes keyRes: Int? = null, keyStr: String? = null) = this.prefObserver?.observerCount() ?: 0
+    internal fun observerCount(@StringRes keyRes: Int? = null, keyStr: String? = null) = this.prefObserver?.observerCount(keyStr ?: keyRes.toString()) ?: 0
 
     private fun SharedPreferences.Editor.store() = this.apply(){
         if(Looper.myLooper() == Looper.getMainLooper()){
@@ -72,11 +70,12 @@ data class AppPref(private var prefs : SharedPreferences? = null) {
             this.instance.init(context, name)
         }
 
-        fun getString(@StringRes key: Int, def : String? = null) = this.instance.getString(key, def)
-        fun getBoolean(@StringRes key: Int, def : Boolean = false) = this.instance.getBoolean(key, def)
-        fun getFloat(@StringRes key: Int, def : Float = 0f) = this.instance.getFloat(key, def)
-        fun getInt(@StringRes key: Int, def : Int = 0) = this.instance.getInt(key, def)
-        fun getLong(@StringRes key: Int, def : Long = 0L) = this.instance.getLong(key, def)
+        /* getter for fields */
+        fun getString(@StringRes key: Int, def : String? = null) = this.instance.getString(key.toString(), def)
+        fun getBoolean(@StringRes key: Int, def : Boolean = false) = this.instance.getBoolean(key.toString(), def)
+        fun getFloat(@StringRes key: Int, def : Float = 0f) = this.instance.getFloat(key.toString(), def)
+        fun getInt(@StringRes key: Int, def : Int = 0) = this.instance.getInt(key.toString(), def)
+        fun getLong(@StringRes key: Int, def : Long = 0L) = this.instance.getLong(key.toString(), def)
 
         fun getString(key: String, def : String? = null) = this.instance.getString(key, def)
         fun getBoolean(key: String, def : Boolean = false) = this.instance.getBoolean(key, def)
@@ -84,6 +83,24 @@ data class AppPref(private var prefs : SharedPreferences? = null) {
         fun getInt(key: String, def : Int = 0) = this.instance.getInt(key, def)
         fun getLong(key: String, def : Long = 0L) = this.instance.getLong(key, def)
 
+        /* setter for fields */
+        fun setString(@StringRes key: Int, value : String?) {
+            this.instance.setString(key.toString(), value)
+        }
+        fun setBoolean(@StringRes key: Int, value : Boolean) {
+            this.instance.setBoolean(key.toString(), value)
+        }
+        fun setFloat(@StringRes key: Int, value : Float) {
+            this.instance.setFloat(key.toString(), value)
+        }
+        fun setInt(@StringRes key: Int, value : Int) {
+            this.instance.setInt(key.toString(), value)
+        }
+        fun setLong(@StringRes key: Int, value : Long) {
+            this.instance.setLong(key.toString(), value)
+        }
+
+        /* listeners for fields */
         fun addObserver(observer : PrefObserver, @StringRes keyRes: Int? = null, keyStr: String? = null){
             this.instance.addObserver(observer, keyRes, keyStr)
         }

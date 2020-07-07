@@ -5,7 +5,7 @@ import java.util.*
 import kotlin.collections.HashMap
 
 interface PrefObserver {
-    fun onChanged(t: Any)
+    fun onChanged(t: Any?)
 }
 
 /* self delete after first data get */
@@ -14,7 +14,7 @@ interface SinglePrefObserver : PrefObserver
 internal class ObserverValue {
     private val obs = HashMap<String, LinkedList<PrefObserver>>(10)
 
-    fun notifyObservers(key : String, value: Any) {
+    fun notifyObservers(key : String, value: Any?) {
         synchronized(this.obs) {
             this.obs.filter { key == it.key }.forEach {
                 it.value.forEach { observer ->
@@ -31,10 +31,14 @@ internal class ObserverValue {
         (this.obs[key] ?: LinkedList()).add(o)
     }
 
-    fun deleteObserver(key : String, o: PrefObserver) {
+    /**
+    * @return Int - current size of obs listeners
+    * */
+    fun deleteObserver(key : String, o: PrefObserver) : Int{
         val list = this.obs[key]
         list?.remove(o)
         if(true == list?.isEmpty()) obs.remove(key)
+        return this.obs.size
     }
 }
 
