@@ -1,187 +1,96 @@
-@file:Suppress("UNCHECKED_CAST", "MemberVisibilityCanBePrivate", "unused")
+@file:Suppress("unused")
 
 package gromiloff.prefs
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
-import android.os.Parcelable
-import android.util.Log
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
-import java.util.*
+import android.os.Looper
+import androidx.annotation.StringRes
 
-class AppPref {
-    private class ObserverValue<Type> internal constructor(value: Type?) {
-        private val obs = Vector<Observer>()
-        internal var customObserverName: Observable? = null
+@SuppressLint("CommitPrefEdits")
+data class AppPref(private var prefs : SharedPreferences? = null) {
+    private var pref: SharedPreferences? = null
+    private var prefObserver : ObserverValue? = null
 
-        var value: Type? = null
-            private set
-        var countListener: Observer? = null
+    internal fun init(context: Context, name: String) {
+        this.pref = context.getSharedPreferences(name, Context.MODE_PRIVATE)
+    }
 
-        init {
-            this.value = value
-        }
+    internal fun getBoolean(key: String, def : Boolean = false) = this.pref?.getBoolean(key, def)
+    internal fun getFloat(key: String, def : Float = 0f) = this.pref?.getFloat(key, def)
+    internal fun getInt(key: String, def : Int = 0) = this.pref?.getInt(key, def)
+    internal fun getLong(key: String, def : Long = 0L) = this.pref?.getLong(key, def)
+    internal fun getString(key: String, def : String? = null) = this.pref?.getString(key, def)
 
-        fun save(value: Any) {
-            this.value = value as Type
-            val arrLocal = this.obs.toTypedArray()
+    internal fun getBoolean(@StringRes key: Int, def : Boolean = false) = getBoolean(key.toString(), def)
+    internal fun getFloat(@StringRes key: Int, def : Float = 0f) = getFloat(key.toString(), def)
+    internal fun getInt(@StringRes key: Int, def : Int = 0) = getInt(key.toString(), def)
+    internal fun getLong(@StringRes key: Int, def : Long = 0L) = getLong(key.toString(), def)
+    internal fun getString(@StringRes key: Int, def : String? = null) = getString(key.toString(), def)
 
-            for (i in arrLocal.indices.reversed())
-                (arrLocal[i] as Observer).update(this.customObserverName, this.value)
-        }
+    internal fun setBoolean(@StringRes key: Int, def : Boolean = false) {
+        this.pref?.edit()?.putBoolean(key.toString(), def)?.store()
+    }
+    internal fun setFloat(@StringRes key: Int, def : Float = 0f) {
+        this.pref?.edit()?.putFloat(key.toString(), def)?.store()
+    }
+    internal fun setInt(@StringRes key: Int, def : Int = 0) {
+        this.pref?.edit()?.putInt(key.toString(), def)?.store()
+    }
+    internal fun setLong(@StringRes key: Int, def : Long = 0L) {
+        this.pref?.edit()?.putLong(key.toString(), def)?.store()
+    }
+    internal fun setString(@StringRes key: Int, def : String? = null) {
+        this.pref?.edit()?.putString(key.toString(), def)?.store()
+    }
 
-        fun observerCount() = this.obs.size
-        fun addObserver(o: Observer?) {
-            if (o == null)
-                throw NullPointerException()
-            if (!this.obs.contains(o)) {
-                this.obs.addElement(o)
-            }
-            this.countListener?.update(this.customObserverName, obs.size)
-        }
+    internal fun addObserver(observer : PrefObserver, @StringRes keyRes: Int? = null, keyStr: String? = null){
+        if(this.prefObserver == null) this.prefObserver = ObserverValue()
+        this.prefObserver?.addObserver(keyStr ?: keyRes.toString(), observer)
+    }
+    internal fun removeObserver(observer : PrefObserver, @StringRes keyRes: Int? = null, keyStr: String? = null){
+        this.prefObserver?.deleteObserver(keyStr ?: keyRes.toString(), observer)
+        if(observerCount() == 0) this.prefObserver = null
+    }
 
-        fun deleteObserver(o: Observer?) {
-            this.obs.removeElement(o)
-            this.countListener?.update(this.customObserverName, obs.size)
+    internal fun observerCount(@StringRes keyRes: Int? = null, keyStr: String? = null) = this.prefObserver?.observerCount() ?: 0
+
+    private fun SharedPreferences.Editor.store() = this.apply(){
+        if(Looper.myLooper() == Looper.getMainLooper()){
+            apply()
+        } else {
+            commit()
         }
     }
 
     companion object {
-        private var pref: SharedPreferences? = null
-        private val cache = HashMap<PrefEnum<*>, ObserverValue<*>>()
+        var disableCache = false
+        private val instance : AppPref by lazy { AppPref() }
 
         fun init(context: Context, name: String) {
-            this.pref = context.getSharedPreferences(name, Context.MODE_PRIVATE)
+            this.instance.init(context, name)
         }
 
-        fun reset(key: PrefEnum<Any>) {
-            save<Any>(key, null)
-            Log.d(key::class.java.simpleName, "reset $key")
+        fun getString(@StringRes key: Int, def : String? = null) = this.instance.getString(key, def)
+        fun getBoolean(@StringRes key: Int, def : Boolean = false) = this.instance.getBoolean(key, def)
+        fun getFloat(@StringRes key: Int, def : Float = 0f) = this.instance.getFloat(key, def)
+        fun getInt(@StringRes key: Int, def : Int = 0) = this.instance.getInt(key, def)
+        fun getLong(@StringRes key: Int, def : Long = 0L) = this.instance.getLong(key, def)
+
+        fun getString(key: String, def : String? = null) = this.instance.getString(key, def)
+        fun getBoolean(key: String, def : Boolean = false) = this.instance.getBoolean(key, def)
+        fun getFloat(key: String, def : Float = 0f) = this.instance.getFloat(key, def)
+        fun getInt(key: String, def : Int = 0) = this.instance.getInt(key, def)
+        fun getLong(key: String, def : Long = 0L) = this.instance.getLong(key, def)
+
+        fun addObserver(observer : PrefObserver, @StringRes keyRes: Int? = null, keyStr: String? = null){
+            this.instance.addObserver(observer, keyRes, keyStr)
+        }
+        fun removeObserver(observer : PrefObserver, @StringRes keyRes: Int? = null, keyStr: String? = null){
+            this.instance.removeObserver(observer, keyRes, keyStr)
         }
 
-        fun returnIfExist(key: PrefEnum<Any>): Any? {
-            var fromCache = false
-            val cacheValue = this.cache[key]
-            var result = if (cacheValue == null) {
-                val value = this.pref?.getString(key.name, key.defaultValue.toString())
-
-                if (value == null || value == key.defaultValue) key.defaultValue else when (key.defaultValue) {
-                    is Boolean -> value.toBoolean()
-                    is Double -> value.toDouble()
-                    is Int -> value.toInt()
-                    is Long -> value.toLong()
-                    is String -> value
-                    is Parcelable -> throw NoSuchMethodException()
-                    is Set<*>/*, is List<*>*/ -> {
-                        var a: ObjectInputStream? = null
-                        var b: ByteArrayInputStream? = null
-                        var ret = key.defaultValue
-                        try {
-                            val split = value.substring(1, value.length - 1).split(", ")
-                            val array = ByteArray(split.size)
-                            for (i in split.indices) {
-                                array[i] = java.lang.Byte.parseByte(split[i])
-                            }
-                            b = ByteArrayInputStream(array)
-                            a = ObjectInputStream(b)
-                            ret = a.readObject()
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        } finally {
-                            a?.close()
-                            b?.close()
-                        }
-                        ret
-                    }
-                    else -> key.defaultValue
-                }
-            } else {
-                fromCache = true
-                if (cacheValue.value == key.defaultValue) null else cacheValue.value
-            }
-
-
-            // кешируем на будущий доступ
-            if (!fromCache) this.cache[key] = ObserverValue(result)
-
-            // проверка на дефольтное значение, тогда возвращаем NULL
-            if(result == key.defaultValue) result = null
-
-            Log.d(key.name, "get from " + (if (fromCache) " CACHE " else " PREFS ") + " [$result]")
-            return result
-        }
-
-        fun <Type> load(key: PrefEnum<Any>) : Type {
-            val result = returnIfExist(key) as? Type
-            return result ?: key.defaultValue as Type
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        fun <Type> save(key: PrefEnum<Any>, v: Type?) {
-            val editor = this.pref!!.edit()
-            val requestedValue : Type = v as Type ?: key.defaultValue as Type
-            val saveValue : Any? = when (key.defaultValue) {
-                is Set<*>/*, is List<*>*/ -> {
-                    var a: ObjectOutputStream? = null
-                    val b = ByteArrayOutputStream()
-                    var ret: String = "" + key.defaultValue
-                    try {
-                        a = ObjectOutputStream(b)
-                        a.writeObject(requestedValue)
-                        ret = Arrays.toString(b.toByteArray())
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    } finally {
-                        a?.close()
-                        b.close()
-                    }
-                    ret
-                }
-                is Parcelable -> throw NoSuchMethodException()
-                else -> requestedValue
-            }
-
-            saveValue?.also {
-                editor.putString(key.name, it.toString())
-                editor.apply()
-
-                this.cache[key]?.save(it)
-                Log.d(key.name, "save [$it] from [$v]")
-            }
-        }
-
-        fun addListenerValue(key: PrefEnum<Any>, listener: Observer, customObserverName: Observable? = null) {
-            var o = this.cache[key]
-            if (o == null) {
-                o = ObserverValue(returnIfExist(key))
-                this.cache[key] = o
-            }
-            o.customObserverName = customObserverName
-            o.addObserver(listener)
-        }
-
-        fun removeListenerValue(key: PrefEnum<*>, listener: Observer) {
-            this.cache[key]?.deleteObserver(listener)
-        }
-
-        fun getCurrentListenersCount(key: PrefEnum<*>) = this.cache[key]?.observerCount() ?: 0
-        fun addListenerCountListeners(key: PrefEnum<*>, listener: Observer) {
-            var o = this.cache[key]
-            if (o == null) {
-                o = ObserverValue(this.pref!!.getString(key.name, "" + key.defaultValue))
-                this.cache[key] = o
-            }
-            o.countListener = listener
-        }
-
-        fun removeListenerCountListeners(key: PrefEnum<*>) {
-            val o = this.cache[key]
-            if (o != null) {
-                o.countListener = null
-            }
-        }
+        fun getCurrentListenersCount(@StringRes keyRes: Int? = null, keyStr: String? = null) = this.instance.observerCount(keyRes, keyStr)
     }
 }
