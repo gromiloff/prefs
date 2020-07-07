@@ -24,23 +24,23 @@ data class AppPref(private var prefs : SharedPreferences? = null) {
     internal fun getString(key: String, def : String? = null) = this.pref?.getString(key, def)
 
     internal fun setBoolean(key: String, value : Boolean) {
-        this.pref?.edit()?.putBoolean(key, value)?.store()
+        store { it.putBoolean(key, value) }
         this.prefObserver?.notifyObservers(key, value)
     }
     internal fun setFloat(key: String, value : Float) {
-        this.pref?.edit()?.putFloat(key, value)?.store()
+        store { it.putFloat(key, value) }
         this.prefObserver?.notifyObservers(key, value)
     }
     internal fun setInt(key: String, value : Int) {
-        this.pref?.edit()?.putInt(key, value)?.store()
+        store { it.putInt(key, value) }
         this.prefObserver?.notifyObservers(key, value)
     }
     internal fun setLong(key: String, value : Long) {
-        this.pref?.edit()?.putLong(key, value)?.store()
+        store { it.putLong(key, value) }
         this.prefObserver?.notifyObservers(key, value)
     }
     internal fun setString(key: String, value : String?) {
-        this.pref?.edit()?.putString(key, value)?.store()
+        store { it.putString(key, value) }
         this.prefObserver?.notifyObservers(key, value)
     }
 
@@ -54,11 +54,15 @@ data class AppPref(private var prefs : SharedPreferences? = null) {
 
     internal fun observerCount(@StringRes keyRes: Int? = null, keyStr: String? = null) = this.prefObserver?.observerCount(keyStr ?: keyRes.toString()) ?: 0
 
-    private fun SharedPreferences.Editor.store() = this.apply(){
-        if(Looper.myLooper() == Looper.getMainLooper()){
-            apply()
-        } else {
-            commit()
+    @SuppressLint("ApplySharedPref")
+    private fun store(func : (editor : SharedPreferences.Editor) -> Unit) {
+        this.pref?.edit()?.apply {
+            func(this)
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                apply()
+            } else {
+                commit()
+            }
         }
     }
 
