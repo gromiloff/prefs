@@ -17,11 +17,11 @@ data class AppPref(private var prefs : SharedPreferences? = null) {
         this.pref = context.getSharedPreferences(name, Context.MODE_PRIVATE)
     }
 
-    internal fun getBoolean(key: String, def : Boolean = false) = this.pref?.getBoolean(key, def)
-    internal fun getFloat(key: String, def : Float = 0f) = this.pref?.getFloat(key, def)
-    internal fun getInt(key: String, def : Int = 0) = this.pref?.getInt(key, def)
-    internal fun getLong(key: String, def : Long = 0L) = this.pref?.getLong(key, def)
-    internal fun getString(key: String, def : String? = null) = this.pref?.getString(key, def)
+    internal fun getBoolean(key: String, def : Boolean = false) = this.pref?.getBoolean(key, def) ?: def
+    internal fun getFloat(key: String, def : Float = 0f) = this.pref?.getFloat(key, def) ?: def
+    internal fun getInt(key: String, def : Int = 0) = this.pref?.getInt(key, def) ?: def
+    internal fun getLong(key: String, def : Long = 0L) = this.pref?.getLong(key, def) ?: def
+    internal fun getString(key: String, def : String) = this.pref?.getString(key, def) ?: def
 
     internal fun setBoolean(key: String, value : Boolean) {
         store { it.putBoolean(key, value) }
@@ -75,42 +75,39 @@ data class AppPref(private var prefs : SharedPreferences? = null) {
         }
 
         /* getter for fields */
-        fun getString(@StringRes key: Int, def : String? = null) = this.instance.getString(key.toString(), def)
-        fun getBoolean(@StringRes key: Int, def : Boolean = false) = this.instance.getBoolean(key.toString(), def)
-        fun getFloat(@StringRes key: Int, def : Float = 0f) = this.instance.getFloat(key.toString(), def)
-        fun getInt(@StringRes key: Int, def : Int = 0) = this.instance.getInt(key.toString(), def)
-        fun getLong(@StringRes key: Int, def : Long = 0L) = this.instance.getLong(key.toString(), def)
-
-        fun getString(key: String, def : String? = null) = this.instance.getString(key, def)
-        fun getBoolean(key: String, def : Boolean = false) = this.instance.getBoolean(key, def)
-        fun getFloat(key: String, def : Float = 0f) = this.instance.getFloat(key, def)
-        fun getInt(key: String, def : Int = 0) = this.instance.getInt(key, def)
-        fun getLong(key: String, def : Long = 0L) = this.instance.getLong(key, def)
+        fun <T : PrefEnum<*>> getString(key: T)  = this.instance.getString(key.name, key.defaultValue as String)
+        fun <T : PrefEnum<*>> getBoolean(key: T) = this.instance.getBoolean(key.name, key.defaultValue as Boolean)
+        fun <T : PrefEnum<*>> getFloat(key: T)   = this.instance.getFloat(key.name, key.defaultValue as Float)
+        fun <T : PrefEnum<*>> getInt(key: T)     = this.instance.getInt(key.name, key.defaultValue as Int)
+        fun <T : PrefEnum<*>> getLong(key: T)    = this.instance.getLong(key.name, key.defaultValue as Long)
 
         /* setter for fields */
-        fun setString(@StringRes key: Int, value : String?) {
+        fun <T : PrefEnum<*>> setString(key: T, value : String?) {
             this.instance.setString(key.toString(), value)
         }
-        fun setBoolean(@StringRes key: Int, value : Boolean) {
+        fun <T : PrefEnum<*>> setBoolean(key: T, value : Boolean) {
             this.instance.setBoolean(key.toString(), value)
         }
-        fun setFloat(@StringRes key: Int, value : Float) {
+        fun <T : PrefEnum<*>> setFloat(key: T, value : Float) {
             this.instance.setFloat(key.toString(), value)
         }
-        fun setInt(@StringRes key: Int, value : Int) {
+        fun <T : PrefEnum<*>> setInt(key: T, value : Int) {
             this.instance.setInt(key.toString(), value)
         }
-        fun setLong(@StringRes key: Int, value : Long) {
+        fun <T : PrefEnum<*>> setLong(key: T, value : Long) {
             this.instance.setLong(key.toString(), value)
         }
 
+
+        fun <T : PrefEnum<*>> resetString(key: T) { this.instance.getString(key.name, key.defaultValue as String) }
+
         /* listeners for fields */
-        fun addObserver(observer : PrefObserver, @StringRes keyRes: Int? = null, keyStr: String? = null){
+        /*fun addObserver(observer : PrefObserver, keyRes: PrefEnum<*>? = null, keyStr: String? = null){
             this.instance.addObserver(observer, keyRes, keyStr)
         }
-        fun removeObserver(observer : PrefObserver, @StringRes keyRes: Int? = null, keyStr: String? = null){
+        fun removeObserver(observer : PrefObserver, keyRes: PrefEnum<*>? = null, keyStr: String? = null){
             this.instance.removeObserver(observer, keyRes, keyStr)
-        }
+        }*/
 
         fun getCurrentListenersCount(@StringRes keyRes: Int? = null, keyStr: String? = null) = this.instance.observerCount(keyRes, keyStr)
     }
