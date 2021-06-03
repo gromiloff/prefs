@@ -99,7 +99,7 @@ data class AppPref(private var prefs : SharedPreferences? = null) {
         }
 
 
-        fun <T : PrefEnum<*>> resetString(key: T) { this.instance.getString(key.name, key.defaultValue as String) }
+        fun <T : PrefEnum<*>> resetString(key: T) { this.instance.setString(key.name, key.defaultValue as String) }
 
         /* listeners for fields */
         /*fun addObserver(observer : PrefObserver, keyRes: PrefEnum<*>? = null, keyStr: String? = null){
