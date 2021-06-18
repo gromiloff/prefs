@@ -75,7 +75,10 @@ data class AppPref(private var prefs : SharedPreferences? = null) {
         }
 
         /* getter for fields */
-        fun <T : PrefEnum<*>> getString(key: T)  = this.instance.getString(key.name, key.defaultValue as String)
+        fun <T : PrefEnum<*>> getString(key: T, defaultValue : String? = null) = this.instance.getString(
+            key.name,
+            defaultValue ?: key.defaultValue as String
+        )
         fun <T : PrefEnum<*>> getBoolean(key: T) = this.instance.getBoolean(key.name, key.defaultValue as Boolean)
         fun <T : PrefEnum<*>> getFloat(key: T)   = this.instance.getFloat(key.name, key.defaultValue as Float)
         fun <T : PrefEnum<*>> getInt(key: T)     = this.instance.getInt(key.name, key.defaultValue as Int)
