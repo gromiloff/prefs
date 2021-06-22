@@ -15,9 +15,17 @@ android {
         versionCode 2
         versionName "2.0.0"
     }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${kotlin_version}"
-    api "androidx.annotation:annotation:1.1.0"
+    api "androidx.annotation:annotation:1.2.0"
 }
