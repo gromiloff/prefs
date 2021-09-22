@@ -3,6 +3,7 @@ static def addRepos(RepositoryHandler handler) {
     handler.jcenter()
     handler.mavenCentral()
     handler.maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    handler.maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' }
     handler.maven { url "https://jitpack.io" }
     handler.maven { url "https://maven.google.com" }
     handler.maven { url "https://plugins.gradle.org/m2/" }
